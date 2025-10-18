@@ -56,7 +56,7 @@ def get_vectorstore(morceaux_text):
     Output:
         vectorstore: Un vectorstore FAISS prêt à interroger.
     """
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     vectorstore = FAISS.from_texts(texts=morceaux_text, embedding=embeddings)
     return vectorstore
 
