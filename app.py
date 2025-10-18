@@ -134,8 +134,8 @@ def init_conversation(vectorstore):
 def main():
 
     load_dotenv()
-    #OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
-    #os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+    OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 
     for var in ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy", "OPENAI_PROXY"]:
