@@ -1,4 +1,5 @@
 # Import librairies
+import os
 from dotenv import load_dotenv
 import streamlit as st
 from PyPDF2 import PdfReader
@@ -133,7 +134,14 @@ def init_conversation(vectorstore):
 def main():
 
     load_dotenv()
-    OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+    #OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+    #os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+
+
+    for var in ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy", "OPENAI_PROXY"]:
+        if var in os.environ:
+            del os.environ[var]
+
     st.set_page_config(page_title = "Mini RAG Chatbot")
 
     if 'ask' not in st.session_state:
