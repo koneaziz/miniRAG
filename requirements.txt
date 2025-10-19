@@ -1,16 +1,18 @@
-streamlit==1.50.0
-python-dotenv==1.0.1
-PyPDF2==3.0.1
-httpx==0.27.2
+streamlit
+python-dotenv
+PyPDF2
+httpx
 
-langchain==0.2.14
-langchain-core==0.2.34
-langchain-community==0.2.12
-langchain-openai==0.1.22
-
-
-faiss-cpu==1.12.0
-openai==1.44.0
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langgraph
+langsmith
 
 
-huggingface_hub==0.23.0
+faiss-cpu
+openai
+
+
+huggingface_hub

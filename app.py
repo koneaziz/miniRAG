@@ -6,7 +6,7 @@ from PyPDF2 import PdfReader
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
+from langchain.memory.buffer import ConversationBufferMemory
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -134,8 +134,8 @@ def init_conversation(vectorstore):
 def main():
 
     load_dotenv()
-    OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+    #OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+    #os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 
     for var in ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy", "OPENAI_PROXY"]:
