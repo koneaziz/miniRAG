@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import streamlit as st
 from PyPDF2 import PdfReader
 
+from uuid import uuid4
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.chat_history import InMemoryChatMessageHistory
