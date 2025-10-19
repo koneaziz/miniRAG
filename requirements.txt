@@ -3,10 +3,11 @@ python-dotenv
 PyPDF2
 httpx
 
-langchain
-langchain-core
-langchain-community
-langchain-openai
+langchain==0.3.27
+langchain-core==0.3.79
+langchain-community==0.3.31
+langchain-openai==0.3.35
+langchain-text-splitters==0.3.11
 langgraph
 langsmith
 

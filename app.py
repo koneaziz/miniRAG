@@ -6,8 +6,9 @@ from PyPDF2 import PdfReader
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
-from langchain.text_splitter import CharacterTextSplitter
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_text_splitters import CharacterTextSplitter
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -72,7 +73,6 @@ def init_conversation(vectorstore):
         memoire: mémoire LangChain (messages).
     """
 
-    memoire = ConversationBufferMemory(memory_key="chat_history", return_messages = True)
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
     retriever = vectorstore.as_retriever(search_kwargs={'k' : 4})
@@ -89,7 +89,7 @@ def init_conversation(vectorstore):
         ("system",
          "Tu es un assistant RAG. Réponds uniquement à partir du contexte fourni. "
          "Si l'information n'est pas dans le contexte, dis que cette information ne fait pas partie de ta base de données."
-         "Si ce sont des salutations tu peux répondre, et dire que tu es la pour répondre dnas le contexte, mais tout le temps, tu peux juste saluer.\n\n"
+         "Si ce sont des salutations tu peux répondre, et dire que tu es la pour répondre dans le contexte, mais tout le temps, tu peux juste saluer.\n\n"
          "Contexte:\n{context}"),
         MessagesPlaceholder("chat_history"),
         ("human", "{input}")
@@ -111,7 +111,24 @@ def init_conversation(vectorstore):
         combine_docs_chain = combine_docs_chain
     )
 
-    def ask(user_input):
+    if '_history_store' not in st.session_state:
+        st.session_state._history_store = {}
+
+    def get_history(session_id: str) -> InMemoryChatMessageHistory:
+        store = st.session_state._history_store
+        if session_id not in store:
+            store[session_id] = InMemoryChatMessageHistory()
+        return store[session_id]
+
+    rag_with_history = RunnableWithMessageHistory(
+        rag_chain,
+        get_history,
+        input_messages_key="input",
+        history_messages_key="chat_history",
+        output_messages_key="answer"
+    )
+
+    def ask(user_input, session_id):
         """Pose une question au RAG en tenant compte de l'historique.
 
         Input:
@@ -120,16 +137,13 @@ def init_conversation(vectorstore):
         Output:
             result: Un dictionnaire avec au moins les clés 'answer' et 'context'.
         """
-        result = rag_chain.invoke({
-            "input": user_input,
-            "chat_history": memoire.chat_memory.messages
-        })
-
-        memoire.chat_memory.add_user_message(user_input)
-        memoire.chat_memory.add_ai_message(result.get('answer',''))
+        result = rag_with_history.invoke(
+            {"input": user_input},
+            config={"configurable": {"session_id": session_id}}
+        )
         return result
     
-    return ask, memoire
+    return ask
 
 def main():
 
@@ -146,8 +160,8 @@ def main():
 
     if 'ask' not in st.session_state:
         st.session_state.ask = None
-    if 'memoire' not in st.session_state:
-        st.session_state.memoire = None
+    if 'session_id' not in st.session_state:
+        st.session_state.session_id = str(uuid4())
     if 'messages' not in st.session_state:
         st.session_state.messages = []
 
@@ -170,9 +184,8 @@ def main():
                 vectorstore = get_vectorstore(morceaux_text)
 
                 # Initialisation de la conversation
-                ask, memoire = init_conversation(vectorstore)
+                ask = init_conversation(vectorstore)
                 st.session_state.ask = ask
-                st.session_state.memoire = memoire
                 st.success("Le bot est prêt à répondre aux questions.")
 
 
@@ -199,13 +212,13 @@ def main():
         if st.session_state.ask is None:
             with st.chat_message('assistant'):
                 st.markdown("Merci ! Charge d'abord les PDF")
-            st.session_state.messages.append(AIMessage("Merci ! Charge d'abord des PDF dans la barre latérale 🙂"))
+            st.session_state.messages.append(AIMessage("Merci ! Charge d'abord des PDF dans la barre latérale"))
             return
         
         # Lancer le programme et afficher la réponse
         with st.chat_message('assistant'):
             with st.spinner("Réflexion..."):
-                result = st.session_state.ask(question_user)
+                result = st.session_state.ask(question_user, st.session_state.session_id)
                 reponse = result.get('answer', '')
                 st.markdown(reponse)
 
